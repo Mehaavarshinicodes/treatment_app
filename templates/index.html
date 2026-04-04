@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Treatment Feasibility Predictor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #333; }
+    header { background: #1a73e8; color: white; padding: 20px 40px; }
+    header h1 { font-size: 1.5rem; }
+    header p  { font-size: 0.9rem; opacity: 0.85; margin-top: 4px; }
+    .container { max-width: 860px; margin: 30px auto; padding: 0 20px; }
+    .card { background: white; border-radius: 10px; padding: 28px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 24px; }
+    .card h2 { font-size: 1rem; font-weight: 600; color: #1a73e8;
+               text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 18px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    label { display: block; font-size: 0.82rem; color: #555; margin-bottom: 5px; }
+    input[type=number], select {
+      width: 100%; padding: 9px 12px; border: 1px solid #ddd;
+      border-radius: 6px; font-size: 0.92rem; transition: border 0.2s;
+    }
+    input[type=number]:focus, select:focus { outline: none; border-color: #1a73e8; }
+    .toggle-group { display: flex; gap: 8px; }
+    .toggle-group button {
+      flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px;
+      background: white; cursor: pointer; font-size: 0.85rem; transition: all 0.15s;
+    }
+    .toggle-group button.active { background: #1a73e8; color: white; border-color: #1a73e8; }
+    .submit-btn {
+      width: 100%; padding: 14px; background: #1a73e8; color: white;
+      border: none; border-radius: 8px; font-size: 1rem; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .submit-btn:hover { background: #1558b0; }
+    #result { display: none; }
+    .result-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .result-card { text-align: center; padding: 20px 10px; border-radius: 8px; }
+    .result-card .val { font-size: 1.8rem; font-weight: 700; }
+    .result-card .lbl { font-size: 0.8rem; color: #666; margin-top: 4px; }
+    .feasible-yes { background: #e6f4ea; }
+    .feasible-yes .val { color: #188038; }
+    .feasible-no  { background: #fce8e6; }
+    .feasible-no  .val { color: #c5221f; }
+    .score-card  { background: #e8f0fe; }
+    .score-card .val { color: #1a73e8; }
+    .risk-LOW      { background: #e6f4ea; }
+    .risk-LOW .val { color: #188038; }
+    .risk-MODERATE      { background: #fef7e0; }
+    .risk-MODERATE .val { color: #ea8600; }
+    .risk-HIGH      { background: #fce8e6; }
+    .risk-HIGH .val { color: #c5221f; }
+    .comorbidity-card { background: #f1f3f4; }
+    .comorbidity-card .val { color: #333; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Treatment Feasibility Predictor</h1>
+  <p>Enter patient health records to assess treatment suitability</p>
+</header>
+
+<div class="container">
+
+  <!-- Vitals -->
+  <div class="card">
+    <h2>Patient Vitals</h2>
+    <div class="grid">
+      <div><label>Age (years)</label><input type="number" id="age" min="0" max="120"></div>
+      <div>
+        <label>Gender</label>
+        <div class="toggle-group">
+          <button class="active" onclick="setToggle('gender',0,this)">Female</button>
+          <button onclick="setToggle('gender',1,this)">Male</button>
+        </div>
+        <input type="hidden" id="gender" value="0">
+      </div>
+      <div><label>BMI</label><input type="number" id="bmi" step="0.1"></div>
+      <div><label>Systolic BP (mmHg)</label><input type="number" id="systolic_bp"></div>
+      <div><label>Diastolic BP (mmHg)</label><input type="number" id="diastolic_bp"></div>
+      <div><label>Blood Glucose (mg/dL)</label><input type="number" id="blood_glucose"></div>
+      <div><label>Insulin (µU/mL)</label><input type="number" id="insulin"></div>
+      <div><label>Cholesterol (mg/dL)</label><input type="number" id="cholesterol"></div>
+      <div><label>Creatinine (mg/dL)</label><input type="number" id="creatinine" step="0.01"></div>
+      <div><label>Hemoglobin (g/dL)</label><input type="number" id="hemoglobin" step="0.1"></div>
+    </div>
+  </div>
+
+  <!-- Comorbidities -->
+  <div class="card">
+    <h2>Comorbidities</h2>
+    <div class="grid-3">
+      <div><label>Diabetes</label>
+        <div class="toggle-group">
+          <button class="active" onclick="setToggle('has_diabetes',0,this)">No</button>
+          <button onclick="setToggle('has_diabetes',1,this)">Yes</button>
+        </div><input type="hidden" id="has_diabetes" value="0">
+      </div>
+      <div><label>Hypertension</label>
+        <div class="toggle-group">
+          <button class="active" onclick="setToggle('has_hypertension',0,this)">No</button>
+          <button onclick="setToggle('has_hypertension',1,this)">Yes</button>
+        </div><input type="hidden" id="has_hypertension" value="0">
+      </div>
+      <div><label>Heart Disease</label>
+        <div class="toggle-group">
+          <button class="active" onclick="setToggle('has_heart_disease',0,this)">No</button>
+          <button onclick="setToggle('has_heart_disease',1,this)">Yes</button>
+        </div><input type="hidden" id="has_heart_disease" value="0">
+      </div>
+      <div><label>Kidney Disease</label>
+        <div class="toggle-group">
+          <button class="active" onclick="setToggle('has_kidney_disease',0,this)">No</button>
+          <button onclick="setToggle('has_kidney_disease',1,this)">Yes</button>
+        </div><input type="hidden" id="has_kidney_disease" value="0">
+      </div>
+      <div><label>Liver Disease</label>
+        <div class="toggle-group">
+          <button class="active" onclick="setToggle('has_liver_disease',0,this)">No</button>
+          <button onclick="setToggle('has_liver_disease',1,this)">Yes</button>
+        </div><input type="hidden" id="has_liver_disease" value="0">
+      </div>
+    </div>
+  </div>
+
+  <!-- Allergies -->
+  <div class="card">
+    <h2>Allergies</h2>
+    <div class="grid-3">
+      <div><label>Penicillin</label>
+        <div class="toggle-group">
+          <button class="active" onclick="setToggle('allergy_penicillin',0,this)">No</button>
+          <button onclick="setToggle('allergy_penicillin',1,this)">Yes</button>
+        </div><input type="hidden" id="allergy_penicillin" value="0">
+      </div>
+      <div><label>Sulfa</label>
+        <div class="toggle-group">
+          <button class="active" onclick="setToggle('allergy_sulfa',0,this)">No</button>
+          <button onclick="setToggle('allergy_sulfa',1,this)">Yes</button>
+        </div><input type="hidden" id="allergy_sulfa" value="0">
+      </div>
+      <div><label>NSAID</label>
+        <div class="toggle-group">
+          <button class="active" onclick="setToggle('allergy_nsaid',0,this)">No</button>
+          <button onclick="setToggle('allergy_nsaid',1,this)">Yes</button>
+        </div><input type="hidden" id="allergy_nsaid" value="0">
+      </div>
+    </div>
+  </div>
+
+  <!-- Treatment -->
+  <div class="card">
+    <h2>Treatment</h2>
+    <div style="max-width:400px">
+      <label>Select Treatment</label>
+      <select id="treatment_name">
+        {% for t in treatments %}
+        <option value="{{ t }}">{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <button class="submit-btn" onclick="predict()">Predict Feasibility</button>
+
+  <!-- Result -->
+  <div class="card" id="result" style="margin-top:24px">
+    <h2>Prediction Result</h2>
+    <div class="result-grid" id="result-grid"></div>
+  </div>
+
+</div>
+
+<script>
+  function setToggle(id, val, btn) {
+    document.getElementById(id).value = val;
+    btn.closest('.toggle-group').querySelectorAll('button')
+       .forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  async function predict() {
+    const fields = [
+      "age","gender","bmi","systolic_bp","diastolic_bp","blood_glucose",
+      "insulin","cholesterol","creatinine","hemoglobin","has_diabetes",
+      "has_hypertension","has_heart_disease","has_kidney_disease",
+      "has_liver_disease","allergy_penicillin","allergy_sulfa","allergy_nsaid"
+    ];
+    const data = { treatment_name: document.getElementById("treatment_name").value };
+    for (const f of fields) data[f] = document.getElementById(f).value;
+
+    const res  = await fetch("/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    const r = await res.json();
+
+    const riskClass = `risk-${r.risk}`;
+    document.getElementById("result-grid").innerHTML = `
+      <div class="result-card ${r.feasible ? 'feasible-yes' : 'feasible-no'}">
+        <div class="val">${r.feasible ? '✔' : '✗'}</div>
+        <div class="lbl">${r.feasible ? 'Feasible' : 'Not Feasible'}</div>
+      </div>
+      <div class="result-card score-card">
+        <div class="val">${r.score}%</div>
+        <div class="lbl">Feasibility Score</div>
+      </div>
+      <div class="result-card ${riskClass}">
+        <div class="val">${r.risk}</div>
+        <div class="lbl">Risk Level</div>
+      </div>
+      <div class="result-card comorbidity-card">
+        <div class="val">${r.comorbidities}/5</div>
+        <div class="lbl">Comorbidities</div>
+      </div>
+    `;
+    document.getElementById("result").style.display = "block";
+    document.getElementById("result").scrollIntoView({ behavior: "smooth" });
+  }
+</script>
+</body>
+</html>

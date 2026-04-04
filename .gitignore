@@ -1,0 +1,13 @@
+# Model and data files (too large / sensitive for git)
+treatment_model.pkl
+patient_dataset.csv
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Virtual environment
+venv/
+env/
