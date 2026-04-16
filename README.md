@@ -6,11 +6,18 @@ A Flask web app that predicts whether a treatment is feasible for a patient base
 
 ```
 treatment_app/
-├── app.py              # Flask backend
-├── train_model.py      # Script to train and save the model
-├── requirements.txt    # Python dependencies
-└── templates/
-    └── index.html      # Frontend UI
+├── app.py                  # Flask backend (main application)
+├── train_model.py          # Script to train and save ML model
+├── treatment_model.pkl     # Trained ML model
+├── patient_dataset.csv     # Dataset used for training
+├── requirements.txt        # Python dependencies
+├── .gitignore              # Files to ignore in Git
+├── README.md               # Project documentation
+└── templates/              # Frontend HTML pages
+    ├── checker.html        # Treatment feasibility checker UI
+    ├── dashboard.html      # User dashboard
+    ├── login.html          # Login page
+    └── profile.html        # User profile page
 ```
 
 ## Setup Instructions
@@ -47,14 +54,19 @@ http://127.0.0.1:5000
 ```
 
 ## Treatments Covered
-- Chemotherapy
-- Radiation Therapy
-- Immunotherapy
-- Hormone Therapy
-- Surgical Intervention
+- Cancer/Oncology
+- Cardiology
+- Neurology
+- Diabetes/Metabolic
+- Nephrology
+- Pulmonology
 - Medication / Drug Therapy
 
 ## Tech Stack
 - Python, Flask
 - scikit-learn (Gradient Boosting Classifier)
 - HTML, CSS, JavaScript
+
+## Ways of Treatment
+- Single Assessment
+- Compare Treatments
