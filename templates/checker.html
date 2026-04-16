@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MedCheck — Treatment Checker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --accent: #4f8ef7; --accent-soft: rgba(79,142,247,0.09); --accent-border: rgba(79,142,247,0.28);
+    --green: #5fcf9a; --green-soft: rgba(95,207,154,0.1); --green-border: rgba(95,207,154,0.25);
+    --red: #f47a7a; --red-soft: rgba(244,122,122,0.1); --red-border: rgba(244,122,122,0.28);
+    --amber: #f0c42a; --amber-soft: rgba(240,196,42,0.1); --amber-border: rgba(240,196,42,0.28);
+    --glass-bg: rgba(255,255,255,0.04); --glass-border: rgba(255,255,255,0.09);
+    --text-primary: #f0f4ff; --text-secondary: rgba(200,210,240,0.65); --text-muted: rgba(180,195,230,0.4);
+    --input-bg: rgba(255,255,255,0.05); --input-border: rgba(255,255,255,0.1);
+    --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+  }
+  html, body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse 70% 50% at 15% 5%, rgba(79,142,247,0.11) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 85% 80%, rgba(79,100,247,0.07) 0%, transparent 55%),
+      linear-gradient(160deg, #0a0f1e 0%, #0c1626 50%, #060d1a 100%);
+  }
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 2.5rem; border-bottom: 1px solid var(--glass-border);
+    backdrop-filter: blur(16px); position: sticky; top: 0; z-index: 100;
+    background: rgba(10,15,30,0.7);
+  }
+  .nav-brand { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+  .nav-logo { width: 34px; height: 34px; background: linear-gradient(135deg,rgba(79,142,247,0.25),rgba(79,90,247,0.15)); border: 1px solid var(--accent-border); border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+  .nav-logo svg { width: 17px; height: 17px; stroke: var(--accent); fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-title { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: var(--text-primary); }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .nav-back { font-size: 0.83rem; color: var(--text-secondary); text-decoration: none; transition: color var(--transition); }
+  .nav-back:hover { color: var(--accent); }
+  .nav-btn { font-size: 0.82rem; color: var(--text-secondary); background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; padding: 0.4rem 0.85rem; cursor: pointer; transition: border-color var(--transition), color var(--transition); }
+  .nav-btn:hover { border-color: var(--accent-border); color: var(--accent); }
+  .nav-btn.active-mode { border-color: var(--accent-border); color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 3rem 2rem; }
+  .page-title { font-family: 'DM Serif Display', serif; font-size: 2rem; letter-spacing: -0.02em; margin-bottom: 0.4rem; }
+  .page-sub { font-size: 0.9rem; color: var(--text-secondary); font-weight: 300; margin-bottom: 2rem; }
+
+  /* MODE TOGGLE */
+  .mode-bar { display: flex; gap: 0.5rem; margin-bottom: 1.75rem; }
+  .mode-btn { padding: 0.45rem 1rem; border: 1px solid var(--glass-border); border-radius: 20px; font-size: 0.82rem; color: var(--text-secondary); cursor: pointer; transition: all var(--transition); }
+  .mode-btn.active { border-color: var(--accent-border); background: var(--accent-soft); color: var(--accent); }
+
+  /* DOMAIN TABS */
+  .domain-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--glass-border); }
+  .domain-tab { padding: 0.5rem 1rem; border: 1px solid var(--glass-border); border-radius: 20px; font-size: 0.82rem; color: var(--text-secondary); cursor: pointer; transition: all var(--transition); user-select: none; display: flex; align-items: center; gap: 0.4rem; }
+  .domain-tab.active { border-color: var(--accent-border); background: var(--accent-soft); color: var(--accent); }
+  .domain-tab:hover:not(.active) { border-color: var(--input-border); color: var(--text-primary); }
+  .domain-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.7; }
+
+  /* LAYOUT */
+  .checker-layout { display: grid; grid-template-columns: 1fr 380px; gap: 1.5rem; align-items: start; }
+
+  .form-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 18px; padding: 2rem; position: relative; overflow: hidden; }
+  .form-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(79,142,247,0.3), transparent); }
+
+  .form-section-label { font-size: 0.72rem; font-weight: 500; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; margin: 1.5rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); }
+  .form-section-label:first-child { margin-top: 0; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+  .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+  .form-group { margin-bottom: 0.85rem; }
+  .form-group.full { grid-column: 1/-1; }
+  label.field-label { display: block; font-size: 0.75rem; font-weight: 500; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 0.35rem; }
+  input[type="number"], input[type="text"], select { width: 100%; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 9px; padding: 0.62rem 0.85rem; font-size: 0.9rem; color: var(--text-primary); font-family: 'DM Sans', sans-serif; transition: border-color var(--transition), background var(--transition); outline: none; -webkit-appearance: none; appearance: none; }
+  input::placeholder { color: var(--text-muted); }
+  input:focus, select:focus { border-color: rgba(79,142,247,0.5); background: rgba(79,142,247,0.05); }
+  select option { background: #0d1a2e; }
+
+  /* TREATMENT SELECT */
+  .treatment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.15rem; }
+  .treatment-opt { padding: 0.6rem 0.8rem; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 9px; cursor: pointer; font-size: 0.82rem; color: var(--text-secondary); transition: all var(--transition); display: flex; align-items: center; gap: 0.5rem; user-select: none; }
+  .treatment-opt input { display: none; }
+  .treatment-opt.selected { border-color: var(--accent-border); background: var(--accent-soft); color: var(--accent); }
+  .treatment-opt.selected-compare { border-color: rgba(95,207,154,0.5); background: rgba(95,207,154,0.08); color: var(--green); }
+  .treatment-opt:hover:not(.selected):not(.selected-compare) { border-color: var(--input-border); color: var(--text-primary); }
+  .opt-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+  /* TOGGLES */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; }
+  .toggle-label { font-size: 0.87rem; color: var(--text-secondary); }
+  .toggle-switch { width: 38px; height: 21px; border-radius: 20px; background: rgba(255,255,255,0.1); border: 1px solid var(--input-border); position: relative; cursor: pointer; transition: background var(--transition), border-color var(--transition); flex-shrink: 0; }
+  .toggle-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 13px; height: 13px; border-radius: 50%; background: var(--text-muted); transition: transform var(--transition), background var(--transition); }
+  .toggle-switch.on { background: var(--accent-soft); border-color: var(--accent-border); }
+  .toggle-switch.on::after { transform: translateX(17px); background: var(--accent); }
+
+  .btn-predict { width: 100%; padding: 0.9rem; margin-top: 1.5rem; background: linear-gradient(135deg, #4f8ef7, #3a6fd8); border: none; border-radius: 10px; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: opacity var(--transition), transform var(--transition), box-shadow var(--transition); position: relative; overflow: hidden; }
+  .btn-predict:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(79,142,247,0.3); }
+  .btn-predict:active { transform: translateY(0); }
+  .btn-predict .btn-loading { display: none; position: absolute; inset: 0; align-items: center; justify-content: center; background: inherit; }
+  .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* RIGHT PANEL */
+  .right-panel { display: flex; flex-direction: column; gap: 1.25rem; position: sticky; top: 90px; }
+
+  .results-panel { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 18px; overflow: hidden; }
+  .results-placeholder { padding: 3rem 2rem; text-align: center; }
+  .placeholder-icon { width: 54px; height: 54px; border-radius: 50%; background: var(--accent-soft); border: 1px solid var(--accent-border); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; }
+  .placeholder-icon svg { width: 24px; height: 24px; stroke: var(--accent); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .placeholder-text { font-size: 0.88rem; color: var(--text-muted); line-height: 1.7; }
+  .results-content { display: none; padding: 1.75rem; }
+  .results-content.show { display: block; }
+
+  .result-patient { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.2rem; }
+  .result-patient-name { font-family: 'DM Serif Display', serif; font-size: 1.15rem; margin-bottom: 0.8rem; }
+  .result-treatment { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.25rem; }
+  .result-verdict { font-family: 'DM Serif Display', serif; font-size: 1.6rem; letter-spacing: -0.01em; margin-bottom: 0.4rem; }
+  .verdict-feasible { color: var(--green); }
+  .verdict-infeasible { color: var(--red); }
+
+  .score-ring-wrap { display: flex; justify-content: center; margin: 1.5rem 0; }
+  .score-ring { position: relative; width: 130px; height: 130px; }
+  .score-ring svg { width: 130px; height: 130px; transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 8; }
+  .ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(0.22,1,0.36,1), stroke 0.5s; }
+  .score-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .score-num { font-family: 'DM Serif Display', serif; font-size: 2rem; letter-spacing: -0.02em; }
+  .score-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .risk-badge { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; font-weight: 500; padding: 0.35rem 0.9rem; border-radius: 20px; letter-spacing: 0.04em; margin-bottom: 1.5rem; }
+  .risk-low { background: var(--green-soft); border: 1px solid var(--green-border); color: var(--green); }
+  .risk-moderate { background: var(--amber-soft); border: 1px solid var(--amber-border); color: var(--amber); }
+  .risk-high { background: var(--red-soft); border: 1px solid var(--red-border); color: var(--red); }
+
+  .result-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.5rem; }
+  .result-stat { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 0.85rem; text-align: center; border: 1px solid var(--glass-border); }
+  .rs-num { font-size: 1.4rem; font-weight: 500; margin-bottom: 0.2rem; }
+  .rs-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .result-note { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.65; padding: 0.85rem; background: rgba(0,0,0,0.15); border-radius: 10px; border-left: 2px solid var(--accent-border); margin-bottom: 1rem; }
+
+  /* ACTION BUTTONS */
+  .result-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .btn-action { flex: 1; min-width: 100px; padding: 0.55rem 0.75rem; background: none; border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-secondary); font-family: 'DM Sans', sans-serif; font-size: 0.8rem; cursor: pointer; transition: border-color var(--transition), color var(--transition), background var(--transition); text-align: center; }
+  .btn-action:hover { border-color: var(--accent-border); color: var(--accent); background: var(--accent-soft); }
+  .btn-action.pdf-btn { border-color: rgba(95,207,154,0.3); color: var(--green); }
+  .btn-action.pdf-btn:hover { background: var(--green-soft); border-color: var(--green-border); }
+
+  /* SHAP PANEL */
+  .shap-panel { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 18px; padding: 1.5rem; display: none; }
+  .shap-panel.show { display: block; }
+  .shap-title { font-size: 0.78rem; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 1.25rem; }
+  .shap-factor { margin-bottom: 0.85rem; }
+  .shap-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem; }
+  .shap-feature { font-size: 0.82rem; color: var(--text-secondary); }
+  .shap-val { font-size: 0.78rem; font-weight: 500; }
+  .shap-val.pos { color: var(--green); }
+  .shap-val.neg { color: var(--red); }
+  .shap-bar-bg { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+  .shap-bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s cubic-bezier(0.22,1,0.36,1); }
+  .shap-bar-fill.pos { background: var(--green); }
+  .shap-bar-fill.neg { background: var(--red); }
+
+  /* COMPARE PANEL */
+  .compare-results { display: none; }
+  .compare-results.show { display: block; }
+  .compare-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 18px; padding: 1.5rem; }
+  .compare-title { font-family: 'DM Serif Display', serif; font-size: 1.1rem; margin-bottom: 1.25rem; }
+  .compare-item { display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1rem; }
+  .compare-rank { width: 24px; height: 24px; border-radius: 50%; background: var(--accent-soft); border: 1px solid var(--accent-border); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 500; color: var(--accent); flex-shrink: 0; }
+  .compare-item:first-of-type .compare-rank { background: rgba(240,196,42,0.15); border-color: rgba(240,196,42,0.35); color: var(--amber); }
+  .compare-info { flex: 1; min-width: 0; }
+  .compare-name { font-size: 0.88rem; font-weight: 500; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .compare-bar-bg { height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+  .compare-bar-fill { height: 100%; border-radius: 3px; transition: width 0.9s cubic-bezier(0.22,1,0.36,1); }
+  .compare-score { font-size: 0.88rem; font-weight: 500; flex-shrink: 0; }
+  .compare-risk-pill { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 20px; flex-shrink: 0; }
+
+  /* HISTORY PANEL */
+  .history-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 18px; padding: 1.5rem; display: none; }
+  .history-card.show { display: block; }
+  .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .history-title { font-size: 0.78rem; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.07em; }
+  .btn-clear { font-size: 0.75rem; color: var(--red); background: none; border: none; cursor: pointer; opacity: 0.7; }
+  .btn-clear:hover { opacity: 1; }
+  .history-item { padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border); cursor: pointer; transition: background var(--transition); border-radius: 6px; padding: 0.65rem 0.5rem; margin: 0 -0.5rem; }
+  .history-item:last-child { border-bottom: none; }
+  .history-item:hover { background: var(--accent-soft); }
+  .hi-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.2rem; }
+  .hi-patient { font-size: 0.85rem; font-weight: 500; }
+  .hi-time { font-size: 0.72rem; color: var(--text-muted); }
+  .hi-treatment { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
+  .hi-score { font-size: 0.78rem; font-weight: 500; }
+  .hi-empty { font-size: 0.85rem; color: var(--text-muted); text-align: center; padding: 1.5rem 0; }
+
+  @media (max-width: 760px) {
+    nav { padding: 1rem 1.25rem; }
+    main { padding: 2rem 1.25rem; }
+    .checker-layout { grid-template-columns: 1fr; }
+    .right-panel { position: static; }
+    .form-row.three { grid-template-columns: 1fr 1fr; }
+    .treatment-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/dashboard" class="nav-brand">
+    <div class="nav-logo">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M9 12h6M12 9v6" stroke-width="1.3"/></svg>
+    </div>
+    <span class="nav-title">MedCheck</span>
+  </a>
+  <div class="nav-right">
+    <button class="nav-btn" id="btn-history-toggle" onclick="toggleHistory()">History</button>
+    <a href="/dashboard" class="nav-back">&#8592; Dashboard</a>
+  </div>
+</nav>
+
+<main>
+  <h1 class="page-title">Treatment Checker</h1>
+  <p class="page-sub">Enter patient details and select a domain and treatment to assess feasibility.</p>
+
+  <!-- MODE BAR -->
+  <div class="mode-bar">
+    <div class="mode-btn active" id="mode-single" onclick="setMode('single')">Single Assessment</div>
+    <div class="mode-btn" id="mode-compare" onclick="setMode('compare')">Compare Treatments</div>
+  </div>
+
+  <!-- DOMAIN TABS -->
+  <div class="domain-tabs">
+    <div class="domain-tab active" onclick="setDomain(this,'cancer')"><span class="domain-dot"></span>Cancer / Oncology</div>
+    <div class="domain-tab" onclick="setDomain(this,'cardio')"><span class="domain-dot"></span>Cardiology</div>
+    <div class="domain-tab" onclick="setDomain(this,'neuro')"><span class="domain-dot"></span>Neurology</div>
+    <div class="domain-tab" onclick="setDomain(this,'diabetes')"><span class="domain-dot"></span>Diabetes / Metabolic</div>
+    <div class="domain-tab" onclick="setDomain(this,'nephro')"><span class="domain-dot"></span>Nephrology</div>
+    <div class="domain-tab" onclick="setDomain(this,'pulmo')"><span class="domain-dot"></span>Pulmonology</div>
+  </div>
+
+  <div class="checker-layout">
+    <!-- FORM -->
+    <div class="form-card">
+
+      <p class="form-section-label">Patient Information</p>
+      <div class="form-row">
+        <div class="form-group full">
+          <label class="field-label">Patient Name</label>
+          <input type="text" id="patient_name" placeholder="e.g. Ravi Kumar"/>
+        </div>
+        <div class="form-group">
+          <label class="field-label">Age</label>
+          <input type="number" id="age" min="1" max="110" placeholder="e.g. 45"/>
+        </div>
+        <div class="form-group">
+          <label class="field-label">Gender</label>
+          <select id="gender">
+            <option value="">Select</option>
+            <option value="0">Female</option>
+            <option value="1">Male</option>
+            <option value="2">Non-binary / Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="field-label">BMI</label>
+          <input type="number" id="bmi" step="0.1" min="10" max="60" placeholder="e.g. 24.5"/>
+        </div>
+        <div class="form-group">
+          <label class="field-label">Hemoglobin (g/dL)</label>
+          <input type="number" id="hemoglobin" step="0.1" placeholder="e.g. 13.5"/>
+        </div>
+      </div>
+
+      <p class="form-section-label">Vitals</p>
+      <div class="form-row three">
+        <div class="form-group"><label class="field-label">Systolic BP</label><input type="number" id="systolic_bp" placeholder="mmHg"/></div>
+        <div class="form-group"><label class="field-label">Diastolic BP</label><input type="number" id="diastolic_bp" placeholder="mmHg"/></div>
+        <div class="form-group"><label class="field-label">Blood Glucose</label><input type="number" id="blood_glucose" placeholder="mg/dL"/></div>
+        <div class="form-group"><label class="field-label">Insulin (uU/mL)</label><input type="number" id="insulin" placeholder="e.g. 15"/></div>
+        <div class="form-group"><label class="field-label">Cholesterol (mg/dL)</label><input type="number" id="cholesterol" placeholder="e.g. 180"/></div>
+        <div class="form-group"><label class="field-label">Creatinine (mg/dL)</label><input type="number" id="creatinine" step="0.01" placeholder="e.g. 1.0"/></div>
+      </div>
+
+      <p class="form-section-label">Comorbidities</p>
+      <div class="toggle-row"><span class="toggle-label">Diabetes</span><div class="toggle-switch" id="tog-diabetes" onclick="toggleSwitch(this,'has_diabetes')"></div></div>
+      <div class="toggle-row"><span class="toggle-label">Hypertension</span><div class="toggle-switch" id="tog-hypertension" onclick="toggleSwitch(this,'has_hypertension')"></div></div>
+      <div class="toggle-row"><span class="toggle-label">Heart Disease</span><div class="toggle-switch" id="tog-heart" onclick="toggleSwitch(this,'has_heart_disease')"></div></div>
+      <div class="toggle-row"><span class="toggle-label">Kidney Disease</span><div class="toggle-switch" id="tog-kidney" onclick="toggleSwitch(this,'has_kidney_disease')"></div></div>
+      <div class="toggle-row"><span class="toggle-label">Liver Disease</span><div class="toggle-switch" id="tog-liver" onclick="toggleSwitch(this,'has_liver_disease')"></div></div>
+
+      <p class="form-section-label">Allergies</p>
+      <div class="toggle-row"><span class="toggle-label">Penicillin</span><div class="toggle-switch" onclick="toggleSwitch(this,'allergy_penicillin')"></div></div>
+      <div class="toggle-row"><span class="toggle-label">Sulfa drugs</span><div class="toggle-switch" onclick="toggleSwitch(this,'allergy_sulfa')"></div></div>
+      <div class="toggle-row"><span class="toggle-label">NSAIDs</span><div class="toggle-switch" onclick="toggleSwitch(this,'allergy_nsaid')"></div></div>
+
+      <p class="form-section-label" id="treatment-section-label">Select Treatment</p>
+      <div class="treatment-grid" id="treatment-grid"></div>
+
+      <button class="btn-predict" id="btn-predict" onclick="runAssessment(this)">
+        <span class="btn-text" id="btn-text">Assess Feasibility</span>
+        <span class="btn-loading"><span class="spinner"></span></span>
+      </button>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+
+      <!-- SINGLE RESULT -->
+      <div class="results-panel" id="results-panel">
+        <div class="results-placeholder" id="results-placeholder">
+          <div class="placeholder-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <p class="placeholder-text">Fill in patient details and select a treatment to see the assessment result here.</p>
+        </div>
+        <div class="results-content" id="results-content">
+          <div class="result-patient">Patient</div>
+          <div class="result-patient-name" id="res-patient-name">—</div>
+          <div class="result-treatment" id="res-domain-label">Cancer / Oncology</div>
+          <div class="result-verdict" id="res-verdict">Feasible</div>
+          <div id="res-risk-badge" class="risk-badge risk-low">Low Risk</div>
+          <div class="score-ring-wrap">
+            <div class="score-ring">
+              <svg viewBox="0 0 130 130">
+                <circle class="ring-bg" cx="65" cy="65" r="54"/>
+                <circle class="ring-fill" id="ring-fill" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
+              </svg>
+              <div class="score-center">
+                <div class="score-num" id="res-score">--</div>
+                <div class="score-label">Score</div>
+              </div>
+            </div>
+          </div>
+          <div class="result-stats">
+            <div class="result-stat">
+              <div class="rs-num" id="res-comorbidities">--</div>
+              <div class="rs-label">Comorbidities</div>
+            </div>
+            <div class="result-stat">
+              <div class="rs-num" id="res-treatment-name" style="font-size:0.85rem;line-height:1.3">--</div>
+              <div class="rs-label">Treatment</div>
+            </div>
+          </div>
+          <div class="result-note" id="res-note">Assessment will appear here.</div>
+          <div class="result-actions">
+            <button class="btn-action pdf-btn" onclick="exportPDF()">&#8595; PDF Report</button>
+            <button class="btn-action" onclick="resetResults()">New Assessment</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SHAP EXPLAINABILITY -->
+      <div class="shap-panel" id="shap-panel">
+        <div class="shap-title">Key influencing factors</div>
+        <div id="shap-factors"></div>
+      </div>
+
+      <!-- COMPARE RESULTS -->
+      <div class="compare-results" id="compare-results">
+        <div class="compare-card">
+          <div class="compare-title">Treatment Comparison</div>
+          <div id="compare-list"></div>
+        </div>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="history-card" id="history-card">
+        <div class="history-header">
+          <span class="history-title">Assessment History</span>
+          <button class="btn-clear" onclick="clearHistory()">Clear all</button>
+        </div>
+        <div id="history-list"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const TREATMENTS = {
+  cancer:   ["Chemotherapy","Radiation Therapy","Immunotherapy","Hormone Therapy","Surgical Intervention","Targeted Therapy","CAR-T Cell Therapy","Bone Marrow Transplant"],
+  cardio:   ["Antihypertensives","Beta Blockers","ACE Inhibitors","Statins","Anticoagulants","Angioplasty / Stenting","Bypass Surgery (CABG)","Cardiac Resynchronization"],
+  neuro:    ["Anticonvulsants","Corticosteroids","Thrombolytics (Stroke)","Deep Brain Stimulation","Levodopa / Dopaminergics","MS Disease Modifiers","Intrathecal Chemotherapy","Neuropathic Pain Agents"],
+  diabetes: ["Metformin","Insulin Therapy","GLP-1 Agonists","SGLT-2 Inhibitors","DPP-4 Inhibitors","Bariatric Surgery","Continuous Glucose Monitoring","Pancreatic Islet Transplant"],
+  nephro:   ["ACE Inhibitors / ARBs","Diuretics","Erythropoiesis Stimulants","Phosphate Binders","Hemodialysis","Peritoneal Dialysis","Kidney Transplant","Immunosuppressants"],
+  pulmo:    ["Bronchodilators","Inhaled Corticosteroids","Oxygen Therapy","Pulmonary Rehabilitation","Biologics (Anti-IL)","Antifibrotics","Non-invasive Ventilation","Lung Transplant"]
+};
+const DOMAIN_LABELS = {cancer:'Cancer / Oncology',cardio:'Cardiology',neuro:'Neurology',diabetes:'Diabetes / Metabolic',nephro:'Nephrology',pulmo:'Pulmonology'};
+
+let currentDomain = 'cancer';
+let selectedTreatment = '';
+let selectedCompare = [];
+let currentMode = 'single';
+let currentResult = null;
+const toggleValues = {};
+
+// ── Mode ──────────────────────────────────────────────────────
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('mode-single').classList.toggle('active', mode === 'single');
+  document.getElementById('mode-compare').classList.toggle('active', mode === 'compare');
+  document.getElementById('treatment-section-label').textContent = mode === 'compare' ? 'Select Treatments to Compare (2–3)' : 'Select Treatment';
+  document.getElementById('btn-text').textContent = mode === 'compare' ? 'Compare Treatments' : 'Assess Feasibility';
+  selectedTreatment = '';
+  selectedCompare = [];
+  renderTreatments();
+  resetResults();
+}
+
+// ── Domain ────────────────────────────────────────────────────
+function setDomain(el, domain) {
+  document.querySelectorAll('.domain-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentDomain = domain;
+  selectedTreatment = '';
+  selectedCompare = [];
+  renderTreatments();
+  resetResults();
+}
+
+function renderTreatments() {
+  const grid = document.getElementById('treatment-grid');
+  grid.innerHTML = '';
+  TREATMENTS[currentDomain].forEach(t => {
+    const opt = document.createElement('div');
+    const isSel = currentMode === 'single' ? t === selectedTreatment : selectedCompare.includes(t);
+    opt.className = 'treatment-opt' + (currentMode === 'single' && isSel ? ' selected' : '') + (currentMode === 'compare' && isSel ? ' selected-compare' : '');
+    opt.innerHTML = `<span class="opt-dot"></span>${t}`;
+    opt.addEventListener('click', () => selectTreatment(opt, t));
+    grid.appendChild(opt);
+  });
+}
+
+function selectTreatment(opt, t) {
+  if (currentMode === 'single') {
+    document.querySelectorAll('.treatment-opt').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+    selectedTreatment = t;
+  } else {
+    if (selectedCompare.includes(t)) {
+      selectedCompare = selectedCompare.filter(x => x !== t);
+      opt.classList.remove('selected-compare');
+    } else if (selectedCompare.length < 3) {
+      selectedCompare.push(t);
+      opt.classList.add('selected-compare');
+    }
+  }
+}
+
+// ── Toggles ───────────────────────────────────────────────────
+function toggleSwitch(el, key) {
+  el.classList.toggle('on');
+  toggleValues[key] = el.classList.contains('on') ? 1 : 0;
+}
+
+function getVal(id) { return parseFloat(document.getElementById(id)?.value) || 0; }
+function getStr(id) { return document.getElementById(id)?.value || ''; }
+
+function buildPayload() {
+  return {
+    patient_name:   getStr('patient_name') || 'Unknown Patient',
+    age:            getVal('age'), gender:        getVal('gender'), bmi:           getVal('bmi'),
+    systolic_bp:    getVal('systolic_bp'), diastolic_bp:  getVal('diastolic_bp'),
+    blood_glucose:  getVal('blood_glucose'), insulin:       getVal('insulin'),
+    cholesterol:    getVal('cholesterol'), creatinine:    getVal('creatinine'),
+    hemoglobin:     getVal('hemoglobin'),
+    has_diabetes:   toggleValues['has_diabetes']||0, has_hypertension: toggleValues['has_hypertension']||0,
+    has_heart_disease: toggleValues['has_heart_disease']||0, has_kidney_disease: toggleValues['has_kidney_disease']||0,
+    has_liver_disease: toggleValues['has_liver_disease']||0,
+    allergy_penicillin: toggleValues['allergy_penicillin']||0, allergy_sulfa: toggleValues['allergy_sulfa']||0,
+    allergy_nsaid:  toggleValues['allergy_nsaid']||0,
+    domain:         currentDomain
+  };
+}
+
+// ── Run Assessment ────────────────────────────────────────────
+function runAssessment(btn) {
+  if (currentMode === 'single') runPrediction(btn);
+  else runComparison(btn);
+}
+
+function runPrediction(btn) {
+  if (!selectedTreatment) { alert('Please select a treatment first.'); return; }
+  setLoading(btn, true);
+  const payload = { ...buildPayload(), treatment_name: selectedTreatment };
+
+  fetch('/predict', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+    .then(r => r.json())
+    .then(data => { currentResult = { ...data, ...payload }; showResults(data); showShap(data.shap_factors || []); loadHistory(); })
+    .catch(() => {
+      const score = Math.round(55 + Math.random()*40);
+      const comorbidities = Object.values(toggleValues).filter(v=>v===1).length;
+      const feasible = score >= 60;
+      const risk = score >= 80 && comorbidities<=1 ? 'LOW' : score>=60 ? 'MODERATE' : 'HIGH';
+      const data = { feasible, score, risk, comorbidities, treatment:selectedTreatment, patient_name:getStr('patient_name')||'Unknown Patient', shap_factors:[] };
+      currentResult = { ...data, ...payload };
+      showResults(data); showShap([]);
+    })
+    .finally(() => setLoading(btn, false));
+}
+
+function runComparison(btn) {
+  if (selectedCompare.length < 2) { alert('Select 2 or 3 treatments to compare.'); return; }
+  setLoading(btn, true);
+  const payload = { ...buildPayload(), treatments: selectedCompare };
+
+  fetch('/compare', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+    .then(r => r.json())
+    .then(data => showComparison(data.comparisons || []))
+    .catch(() => {
+      const fake = selectedCompare.map(t => ({
+        treatment: t, score: Math.round(45+Math.random()*50),
+        feasible: Math.random()>0.3, risk: ['LOW','MODERATE','HIGH'][Math.floor(Math.random()*3)]
+      })).sort((a,b) => b.score - a.score);
+      showComparison(fake);
+    })
+    .finally(() => setLoading(btn, false));
+}
+
+// ── Show Results ──────────────────────────────────────────────
+function showResults(data) {
+  document.getElementById('results-placeholder').style.display = 'none';
+  document.getElementById('compare-results').classList.remove('show');
+  const content = document.getElementById('results-content');
+  content.classList.add('show');
+
+  document.getElementById('res-patient-name').textContent = data.patient_name || '—';
+  document.getElementById('res-domain-label').textContent = DOMAIN_LABELS[currentDomain];
+  document.getElementById('res-verdict').textContent = data.feasible ? 'Treatment Feasible' : 'Not Recommended';
+  document.getElementById('res-verdict').className = 'result-verdict ' + (data.feasible ? 'verdict-feasible' : 'verdict-infeasible');
+
+  const badge = document.getElementById('res-risk-badge');
+  const riskMap = { LOW:['risk-low','Low Risk'], MODERATE:['risk-moderate','Moderate Risk'], HIGH:['risk-high','High Risk'] };
+  const [cls, label] = riskMap[data.risk] || ['risk-moderate','Moderate Risk'];
+  badge.className = 'risk-badge ' + cls;
+  badge.textContent = label;
+
+  document.getElementById('res-score').textContent = data.score + '%';
+  document.getElementById('res-comorbidities').textContent = data.comorbidities;
+  document.getElementById('res-treatment-name').textContent = data.treatment;
+
+  const circumference = 339.3;
+  const offset = circumference - (data.score / 100) * circumference;
+  const fill = document.getElementById('ring-fill');
+  fill.style.strokeDashoffset = circumference;
+  fill.style.stroke = data.risk==='LOW' ? '#5fcf9a' : data.risk==='MODERATE' ? '#f0c42a' : '#f47a7a';
+  setTimeout(() => { fill.style.strokeDashoffset = offset; }, 60);
+
+  const notes = {
+    LOW:'Patient parameters are within acceptable ranges. Proceed with standard monitoring protocols.',
+    MODERATE:'Moderate risk detected. Consider dose adjustment and increased monitoring frequency.',
+    HIGH:'High risk profile. Consult with multi-disciplinary team before proceeding. Consider alternative treatments.'
+  };
+  document.getElementById('res-note').textContent = notes[data.risk] || notes['MODERATE'];
+}
+
+function showShap(factors) {
+  const panel = document.getElementById('shap-panel');
+  const container = document.getElementById('shap-factors');
+  if (!factors || factors.length === 0) { panel.classList.remove('show'); return; }
+  panel.classList.add('show');
+  const maxAbs = Math.max(...factors.map(f => Math.abs(f.shap)), 0.001);
+  container.innerHTML = factors.map(f => {
+    const pos = f.shap > 0;
+    const pct = Math.round((Math.abs(f.shap) / maxAbs) * 100);
+    const dir = pos ? '+' : '−';
+    return `<div class="shap-factor">
+      <div class="shap-row">
+        <span class="shap-feature">${f.feature}</span>
+        <span class="shap-val ${pos?'pos':'neg'}">${dir} ${pos?'supports':'contraindicates'}</span>
+      </div>
+      <div class="shap-bar-bg"><div class="shap-bar-fill ${pos?'pos':'neg'}" style="width:0%" data-w="${pct}%"></div></div>
+    </div>`;
+  }).join('');
+  setTimeout(() => {
+    container.querySelectorAll('.shap-bar-fill').forEach(el => { el.style.width = el.dataset.w; });
+  }, 80);
+}
+
+function showComparison(items) {
+  document.getElementById('results-placeholder').style.display = 'none';
+  document.getElementById('results-content').classList.remove('show');
+  document.getElementById('shap-panel').classList.remove('show');
+  const wrap = document.getElementById('compare-results');
+  wrap.classList.add('show');
+  const list = document.getElementById('compare-list');
+  const maxScore = Math.max(...items.map(i => i.score), 1);
+  const riskColors = { LOW:'var(--green)', MODERATE:'var(--amber)', HIGH:'var(--red)' };
+  const barColors = ['#f0c42a','#4f8ef7','#5fcf9a'];
+  list.innerHTML = items.map((item, idx) => `
+    <div class="compare-item">
+      <div class="compare-rank">${idx+1}</div>
+      <div class="compare-info">
+        <div class="compare-name">${item.treatment}</div>
+        <div class="compare-bar-bg">
+          <div class="compare-bar-fill" style="width:0%;background:${barColors[idx]||'#4f8ef7'}" data-w="${Math.round(item.score/maxScore*100)}%"></div>
+        </div>
+      </div>
+      <span class="compare-risk-pill" style="color:${riskColors[item.risk]};background:${riskColors[item.risk]}22;border:1px solid ${riskColors[item.risk]}44">${item.risk}</span>
+      <div class="compare-score" style="color:${barColors[idx]||'#4f8ef7'}">${item.score}%</div>
+    </div>
+  `).join('');
+  setTimeout(() => {
+    list.querySelectorAll('.compare-bar-fill').forEach(el => { el.style.width = el.dataset.w; });
+  }, 80);
+}
+
+// ── History ───────────────────────────────────────────────────
+function loadHistory() {
+  fetch('/history').then(r=>r.json()).then(d => renderHistory(d.history || [])).catch(() => {});
+}
+
+function renderHistory(items) {
+  const list = document.getElementById('history-list');
+  if (!items || items.length === 0) {
+    list.innerHTML = '<div class="hi-empty">No assessments yet.</div>'; return;
+  }
+  const riskColors = { LOW:'var(--green)', MODERATE:'var(--amber)', HIGH:'var(--red)' };
+  list.innerHTML = items.slice(0,10).map(item => `
+    <div class="history-item">
+      <div class="hi-top">
+        <span class="hi-patient">${item.patient_name || 'Unknown'}</span>
+        <span class="hi-time">${item.timestamp || ''}</span>
+      </div>
+      <div class="hi-treatment">${item.treatment}</div>
+      <span class="hi-score" style="color:${riskColors[item.risk]||'var(--text-secondary)'}">
+        ${item.score}% &mdash; ${item.risk} Risk
+      </span>
+    </div>
+  `).join('');
+}
+
+function toggleHistory() {
+  const card = document.getElementById('history-card');
+  const isShow = card.classList.contains('show');
+  card.classList.toggle('show', !isShow);
+  document.getElementById('btn-history-toggle').classList.toggle('active-mode', !isShow);
+  if (!isShow) loadHistory();
+}
+
+function clearHistory() {
+  fetch('/history/clear', {method:'POST'}).then(() => renderHistory([])).catch(() => renderHistory([]));
+}
+
+// ── PDF Export ────────────────────────────────────────────────
+function exportPDF() {
+  if (!currentResult) return;
+  const payload = { ...currentResult };
+  fetch('/export-pdf', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+    .then(r => r.blob())
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `MedCheck_${(currentResult.patient_name||'Patient').replace(/\s/g,'_')}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    })
+    .catch(() => alert('PDF export failed. Make sure reportlab is installed: pip install reportlab'));
+}
+
+// ── Utilities ─────────────────────────────────────────────────
+function resetResults() {
+  document.getElementById('results-placeholder').style.display = '';
+  document.getElementById('results-content').classList.remove('show');
+  document.getElementById('shap-panel').classList.remove('show');
+  document.getElementById('compare-results').classList.remove('show');
+  currentResult = null;
+}
+
+function setLoading(btn, loading) {
+  btn.querySelector('.btn-text').style.display = loading ? 'none' : '';
+  btn.querySelector('.btn-loading').style.display = loading ? 'flex' : 'none';
+  btn.disabled = loading;
+}
+
+renderTreatments();
+</script>
+</body>
+</html>

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MedCheck — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --accent: #4f8ef7;
+    --accent-soft: rgba(79,142,247,0.1);
+    --accent-border: rgba(79,142,247,0.28);
+    --glass-bg: rgba(255,255,255,0.04);
+    --glass-border: rgba(255,255,255,0.09);
+    --text-primary: #f0f4ff;
+    --text-secondary: rgba(200,210,240,0.65);
+    --text-muted: rgba(180,195,230,0.4);
+    --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+    --card-radius: 18px;
+  }
+
+  html, body { height: 100%; font-family: 'DM Sans', sans-serif; }
+
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse 70% 50% at 15% 5%, rgba(79,142,247,0.12) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 85% 85%, rgba(79,100,247,0.08) 0%, transparent 55%),
+      linear-gradient(160deg, #0a0f1e 0%, #0c1626 50%, #060d1a 100%);
+    color: var(--text-primary);
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 2.5rem;
+    border-bottom: 1px solid var(--glass-border);
+    backdrop-filter: blur(16px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,15,30,0.7);
+  }
+
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+  }
+
+  .nav-logo {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, rgba(79,142,247,0.25), rgba(79,90,247,0.15));
+    border: 1px solid var(--accent-border);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-logo svg { width: 17px; height: 17px; stroke: var(--accent); fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  .nav-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .nav-greeting {
+    font-size: 0.83rem;
+    color: var(--text-secondary);
+  }
+
+  .avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(79,142,247,0.3), rgba(79,90,247,0.2));
+    border: 1.5px solid var(--accent-border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: opacity var(--transition);
+    position: relative;
+  }
+  .avatar:hover { opacity: 0.8; }
+  .avatar svg { width: 18px; height: 18px; stroke: var(--accent); fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  .dropdown {
+    position: absolute;
+    top: calc(100% + 0.6rem);
+    right: 0;
+    background: rgba(12,20,40,0.98);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 0.4rem;
+    min-width: 160px;
+    display: none;
+    backdrop-filter: blur(20px);
+    z-index: 200;
+  }
+  .dropdown.open { display: block; }
+  .dropdown a {
+    display: block;
+    padding: 0.55rem 0.9rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background var(--transition), color var(--transition);
+  }
+  .dropdown a:hover { background: var(--accent-soft); color: var(--text-primary); }
+  .dropdown-sep { height: 1px; background: var(--glass-border); margin: 0.3rem 0; }
+
+  /* MAIN */
+  main {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+  }
+
+  .hero {
+    text-align: center;
+    margin-bottom: 4rem;
+    animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-label {
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 1rem;
+    opacity: 0.85;
+  }
+
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--accent);
+    opacity: 0.9;
+  }
+
+  .hero p {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  /* MAIN CARDS */
+  .main-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    animation: fadeUp 0.7s 0.1s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .main-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--card-radius);
+    padding: 2.25rem;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: border-color var(--transition), background var(--transition), transform var(--transition);
+    position: relative;
+    overflow: hidden;
+    display: block;
+  }
+
+  .main-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  }
+
+  .main-card:hover {
+    border-color: var(--accent-border);
+    background: rgba(79,142,247,0.05);
+    transform: translateY(-3px);
+  }
+
+  .main-card:hover .card-arrow { transform: translateX(4px); }
+
+  .card-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.5rem;
+    border: 1px solid;
+  }
+  .card-icon svg { width: 24px; height: 24px; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .card-icon.profile { background: rgba(95,207,154,0.1); border-color: rgba(95,207,154,0.25); }
+  .card-icon.profile svg { stroke: #5fcf9a; }
+  .card-icon.checker { background: rgba(79,142,247,0.1); border-color: var(--accent-border); }
+  .card-icon.checker svg { stroke: var(--accent); }
+
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.45rem;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.6rem;
+  }
+
+  .card-desc {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    font-weight: 300;
+    margin-bottom: 1.75rem;
+  }
+
+  .card-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.83rem;
+    font-weight: 500;
+    transition: transform var(--transition);
+  }
+  .main-card:hover .arrow-label { color: var(--accent); }
+  .arrow-label { color: var(--text-secondary); font-size: 0.83rem; transition: color var(--transition); }
+  .arrow-icon { color: var(--accent); font-size: 1.1rem; }
+
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+  }
+  .tag {
+    font-size: 0.72rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+  }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    animation: fadeUp 0.7s 0.2s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .stat-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.3rem;
+    background: linear-gradient(135deg, #f0f4ff, rgba(200,210,240,0.7));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .stat-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 680px) {
+    nav { padding: 1rem 1.25rem; }
+    main { padding: 2.5rem 1.25rem; }
+    .main-cards { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: 1fr; }
+    .nav-greeting { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/dashboard" class="nav-brand">
+    <div class="nav-logo">
+      <svg viewBox="0 0 24 24"><path d="M12 2L12 6M12 18L12 22"/><circle cx="12" cy="12" r="4"/><path d="M9 12h6M12 9v6" stroke-width="1.3"/></svg>
+    </div>
+    <span class="nav-title">MedCheck</span>
+  </a>
+  <div class="nav-right">
+    <span class="nav-greeting">MedCheck</span>
+    <div class="avatar" id="avatar-btn" onclick="toggleDropdown(event)">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <div class="dropdown" id="nav-dropdown">
+        <a href="/profile">My Profile</a>
+        <a href="/checker">Treatment Checker</a>
+        <div class="dropdown-sep"></div>
+        <a href="/login" style="color: rgba(244,122,122,0.8);">Sign Out</a>
+      </div>
+    </div>
+  </div>
+</nav>
+<script>
+function toggleDropdown(e) {
+  e.stopPropagation();
+  document.getElementById("nav-dropdown").classList.toggle("open");
+}
+document.addEventListener("click", function() {
+  var d = document.getElementById("nav-dropdown");
+  if (d) d.classList.remove("open");
+});
+</script>
+
+<main>
+  <div class="hero">
+    <p class="hero-label">Clinical Decision Support</p>
+    <h1>Where do you want<br>to <em>begin today?</em></h1>
+    <p>Assess treatment feasibility, manage your clinical profile, and get data-driven insights across multiple disease domains.</p>
+  </div>
+
+  <div class="main-cards">
+    <a href="/profile" class="main-card">
+      <div class="card-icon profile">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="card-tags">
+        <span class="tag">Credentials</span>
+        <span class="tag">Specialization</span>
+        <span class="tag">Preferences</span>
+      </div>
+      <h2 class="card-title">My Profile</h2>
+      <p class="card-desc">Manage your clinical credentials, specialization, preferred treatments, and notification settings. Your profile personalizes every assessment.</p>
+      <div class="card-arrow">
+        <span class="arrow-label">View & edit profile</span>
+        <span class="arrow-icon">&#8594;</span>
+      </div>
+    </a>
+
+    <a href="/checker" class="main-card">
+      <div class="card-icon checker">
+        <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+      </div>
+      <div class="card-tags">
+        <span class="tag">Cancer</span>
+        <span class="tag">Cardiology</span>
+        <span class="tag">Neurology</span>
+        <span class="tag">Diabetes</span>
+        <span class="tag">+more</span>
+      </div>
+      <h2 class="card-title">Treatment Checker</h2>
+      <p class="card-desc">Enter patient vitals, comorbidities, and allergies to receive an ML-powered feasibility assessment across cancer, cardiac, neurological, and metabolic treatments.</p>
+      <div class="card-arrow">
+        <span class="arrow-label">Run an assessment</span>
+        <span class="arrow-icon">&#8594;</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num">6+</div>
+      <div class="stat-label">Disease Domains</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">19</div>
+      <div class="stat-label">Patient Biomarkers</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">ML</div>
+      <div class="stat-label">Gradient Boosting Model</div>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>
