@@ -97,6 +97,7 @@ http://127.0.0.1:5000
 Home Page:
 <img width="1902" height="1005" alt="image" src="https://github.com/user-attachments/assets/5f2439d5-7e9c-4100-9ae7-e63ef39a51df" />
 
+Single and Multiple Treatment Checkers:
 <img width="444" height="895" alt="image" src="https://github.com/user-attachments/assets/4c5964e6-6b64-4a33-acf5-c9d03193bb99" />
 <img width="577" height="785" alt="image" src="https://github.com/user-attachments/assets/3eadb30b-0324-4be5-89fb-d39af014efee" />
 <img width="481" height="883" alt="image" src="https://github.com/user-attachments/assets/d2fc1c72-3065-42cc-b3f4-222b3e064979" />
