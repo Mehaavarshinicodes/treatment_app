@@ -161,7 +161,27 @@
   .shap-bar-fill.pos { background: var(--green); }
   .shap-bar-fill.neg { background: var(--red); }
 
-  /* COMPARE PANEL */
+  /* COMPARE CARDS WITH MODEL BREAKDOWN */
+  .cm-card { background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1.1rem; margin-bottom: 0.85rem; }
+  .cm-card:last-child { margin-bottom: 0; }
+  .cm-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.9rem; }
+  .cm-rank { width: 26px; height: 26px; border-radius: 50%; border: 1px solid; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; flex-shrink: 0; }
+  .cm-treatment-name { font-size: 0.9rem; font-weight: 500; flex: 1; }
+  .cm-risk-pill { font-size: 0.7rem; padding: 0.2rem 0.55rem; border-radius: 20px; font-weight: 500; flex-shrink: 0; }
+  .cm-ensemble-score { font-size: 1.1rem; font-weight: 700; flex-shrink: 0; }
+  .cm-model-breakdown { border-top: 1px solid var(--glass-border); padding-top: 0.75rem; }
+  .cm-breakdown-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.6rem; }
+  .cm-model-row { display: grid; grid-template-columns: 130px 1fr 38px 80px; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+  .cm-model-name { font-size: 0.78rem; color: var(--text-secondary); }
+  .cm-model-bar-bg { height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+  .cm-model-bar-fill { height: 100%; border-radius: 2px; transition: width 0.9s cubic-bezier(0.22,1,0.36,1); }
+  .cm-model-score { font-size: 0.78rem; font-weight: 600; text-align: right; }
+  .cm-model-verdict { font-size: 0.72rem; text-align: right; }
+  .cm-ensemble-row { display: flex; justify-content: space-between; align-items: center; margin-top: 0.55rem; padding-top: 0.55rem; border-top: 1px solid var(--glass-border); }
+  .cm-ensemble-label { font-size: 0.78rem; font-weight: 500; color: var(--text-secondary); }
+  .cm-ensemble-val { font-size: 0.95rem; font-weight: 700; }
+
+  /* COMPARE PANEL (old — keep for fallback) */
   .compare-results { display: none; }
   .compare-results.show { display: block; }
   .compare-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 18px; padding: 1.5rem; }
@@ -201,6 +221,27 @@
     .form-row.three { grid-template-columns: 1fr 1fr; }
     .treatment-grid { grid-template-columns: 1fr; }
   }
+
+  /* MODEL SCORES BLOCK */
+  .model-scores-block { margin: 1rem 0; background: rgba(0,0,0,0.25); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1.1rem; }
+  .ms-title { font-size: 0.7rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
+  .ms-row { margin-bottom: 0.9rem; }
+  .ms-left { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.3rem; }
+  .ms-num { font-size: 1.05rem; font-weight: 600; color: var(--accent); min-width: 44px; }
+  .ms-label { font-size: 0.8rem; color: var(--text-secondary); flex: 1; }
+  .ms-tag { font-size: 0.68rem; padding: 0.15rem 0.5rem; border-radius: 20px; font-weight: 500; }
+  .ms-tag.feasible { background: var(--green-soft); color: var(--green); border: 1px solid var(--green-border); }
+  .ms-tag.not-feasible { background: var(--red-soft); color: var(--red); border: 1px solid var(--red-border); }
+  .ms-bar-wrap { padding-left: 44px; }
+  .ms-bar-bg { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+  .ms-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.9s cubic-bezier(0.22,1,0.36,1); }
+  .ms-bar-fill.ms-bar-green { background: var(--green); }
+  .ms-bar-fill.ms-bar-amber { background: var(--amber); }
+  .ms-bar-fill.ms-bar-purple { background: #b57bee; }
+  .ms-ensemble { display: flex; justify-content: space-between; align-items: center; margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px solid var(--glass-border); }
+  .ms-ensemble-label { font-size: 0.82rem; font-weight: 500; color: var(--text-secondary); }
+  .ms-ensemble-score { font-size: 1.2rem; font-weight: 700; color: var(--accent); }
+
 </style>
 </head>
 <body>
@@ -342,6 +383,56 @@
             </div>
           </div>
           <div class="result-note" id="res-note">Assessment will appear here.</div>
+
+          <!-- MODEL SCORES BREAKDOWN -->
+          <div class="model-scores-block" id="model-scores-block">
+            <div class="ms-title">Model Breakdown</div>
+            <div class="ms-row" id="ms-gb">
+              <div class="ms-left">
+                <div class="ms-num" id="ms-gb-score">--%</div>
+                <div class="ms-label">Gradient Boosting</div>
+                <div class="ms-tag" id="ms-gb-tag">--</div>
+              </div>
+              <div class="ms-bar-wrap">
+                <div class="ms-bar-bg"><div class="ms-bar-fill" id="ms-gb-bar" style="width:0%"></div></div>
+              </div>
+            </div>
+            <div class="ms-row" id="ms-rf">
+              <div class="ms-left">
+                <div class="ms-num" id="ms-rf-score">--%</div>
+                <div class="ms-label">Random Forest</div>
+                <div class="ms-tag" id="ms-rf-tag">--</div>
+              </div>
+              <div class="ms-bar-wrap">
+                <div class="ms-bar-bg"><div class="ms-bar-fill ms-bar-green" id="ms-rf-bar" style="width:0%"></div></div>
+              </div>
+            </div>
+            <div class="ms-row" id="ms-lr">
+              <div class="ms-left">
+                <div class="ms-num" id="ms-lr-score">--%</div>
+                <div class="ms-label">Logistic Regression</div>
+                <div class="ms-tag" id="ms-lr-tag">--</div>
+              </div>
+              <div class="ms-bar-wrap">
+                <div class="ms-bar-bg"><div class="ms-bar-fill ms-bar-amber" id="ms-lr-bar" style="width:0%"></div></div>
+              </div>
+            </div>
+            <div class="ms-row" id="ms-nn">
+              <div class="ms-left">
+                <div class="ms-num" id="ms-nn-score">--%</div>
+                <div class="ms-label">Neural Network (MLP)</div>
+                <div class="ms-tag" id="ms-nn-tag">--</div>
+              </div>
+              <div class="ms-bar-wrap">
+                <div class="ms-bar-bg"><div class="ms-bar-fill ms-bar-purple" id="ms-nn-bar" style="width:0%"></div></div>
+              </div>
+            </div>
+            <div class="ms-ensemble">
+              <span class="ms-ensemble-label">Ensemble Average</span>
+              <span class="ms-ensemble-score" id="ms-ensemble-score">--%</span>
+            </div>
+          </div>
+
           <div class="result-actions">
             <button class="btn-action pdf-btn" onclick="exportPDF()">&#8595; PDF Report</button>
             <button class="btn-action" onclick="resetResults()">New Assessment</button>
@@ -358,7 +449,7 @@
       <!-- COMPARE RESULTS -->
       <div class="compare-results" id="compare-results">
         <div class="compare-card">
-          <div class="compare-title">Treatment Comparison</div>
+          <div class="compare-title">Treatment Comparison <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted);font-family:DM Sans,sans-serif">— all 4 models per treatment</span></div>
           <div id="compare-list"></div>
         </div>
       </div>
@@ -425,7 +516,7 @@ function renderTreatments() {
     const isSel = currentMode === 'single' ? t === selectedTreatment : selectedCompare.includes(t);
     opt.className = 'treatment-opt' + (currentMode === 'single' && isSel ? ' selected' : '') + (currentMode === 'compare' && isSel ? ' selected-compare' : '');
     opt.innerHTML = `<span class="opt-dot"></span>${t}`;
-    opt.addEventListener('click', () => selectTreatment(opt, t));
+    opt.onclick = () => selectTreatment(opt, t);
     grid.appendChild(opt);
   });
 }
@@ -551,6 +642,36 @@ function showResults(data) {
     HIGH:'High risk profile. Consult with multi-disciplinary team before proceeding. Consider alternative treatments.'
   };
   document.getElementById('res-note').textContent = notes[data.risk] || notes['MODERATE'];
+
+  // Update model scores breakdown
+  const ms = data.model_scores || {};
+  const gbScore = ms["Gradient Boosting"]   || 0;
+  const rfScore = ms["Random Forest"]       || 0;
+  const lrScore = ms["Logistic Regression"] || 0;
+  const nnScore = ms["Neural Network (MLP)"]|| 0;
+
+  document.getElementById('ms-gb-score').textContent = gbScore + '%';
+  document.getElementById('ms-rf-score').textContent = rfScore + '%';
+  document.getElementById('ms-lr-score').textContent = lrScore + '%';
+  document.getElementById('ms-nn-score').textContent = nnScore + '%';
+  document.getElementById('ms-ensemble-score').textContent = data.score + '%';
+
+  const setTag = (id, score) => {
+    const el = document.getElementById(id);
+    el.textContent = score >= 50 ? 'Feasible' : 'Not Feasible';
+    el.className = 'ms-tag ' + (score >= 50 ? 'feasible' : 'not-feasible');
+  };
+  setTag('ms-gb-tag', gbScore);
+  setTag('ms-rf-tag', rfScore);
+  setTag('ms-lr-tag', lrScore);
+  setTag('ms-nn-tag', nnScore);
+
+  setTimeout(() => {
+    document.getElementById('ms-gb-bar').style.width = gbScore + '%';
+    document.getElementById('ms-rf-bar').style.width = rfScore + '%';
+    document.getElementById('ms-lr-bar').style.width = lrScore + '%';
+    document.getElementById('ms-nn-bar').style.width = nnScore + '%';
+  }, 80);
 }
 
 function showShap(factors) {
@@ -583,24 +704,57 @@ function showComparison(items) {
   const wrap = document.getElementById('compare-results');
   wrap.classList.add('show');
   const list = document.getElementById('compare-list');
-  const maxScore = Math.max(...items.map(i => i.score), 1);
   const riskColors = { LOW:'var(--green)', MODERATE:'var(--amber)', HIGH:'var(--red)' };
-  const barColors = ['#f0c42a','#4f8ef7','#5fcf9a'];
-  list.innerHTML = items.map((item, idx) => `
-    <div class="compare-item">
-      <div class="compare-rank">${idx+1}</div>
-      <div class="compare-info">
-        <div class="compare-name">${item.treatment}</div>
-        <div class="compare-bar-bg">
-          <div class="compare-bar-fill" style="width:0%;background:${barColors[idx]||'#4f8ef7'}" data-w="${Math.round(item.score/maxScore*100)}%"></div>
+  const rankColors = ['#f0c42a','#4f8ef7','#5fcf9a','#b57bee'];
+  const modelColors = {
+    'Gradient Boosting':   '#4f8ef7',
+    'Random Forest':       '#5fcf9a',
+    'Logistic Regression': '#f0c42a',
+    'Neural Network (MLP)':'#b57bee',
+  };
+
+  list.innerHTML = items.map((item, idx) => {
+    const ms = item.model_scores || {};
+    const modelEntries = Object.entries(ms);
+    const rankColor = rankColors[idx] || '#4f8ef7';
+    const riskColor = riskColors[item.risk] || 'var(--amber)';
+
+    const modelRows = modelEntries.map(([mname, mscore]) => {
+      const mcolor = modelColors[mname] || '#4f8ef7';
+      const verdict = mscore >= 50 ? 'Feasible' : 'Not Feasible';
+      const verdictColor = mscore >= 50 ? 'var(--green)' : 'var(--red)';
+      return `
+        <div class="cm-model-row">
+          <span class="cm-model-name">${mname}</span>
+          <div class="cm-model-bar-bg">
+            <div class="cm-model-bar-fill" style="width:0%;background:${mcolor}" data-w="${mscore}%"></div>
+          </div>
+          <span class="cm-model-score" style="color:${mcolor}">${mscore}%</span>
+          <span class="cm-model-verdict" style="color:${verdictColor}">${verdict}</span>
+        </div>`;
+    }).join('');
+
+    return `
+    <div class="cm-card">
+      <div class="cm-header">
+        <div class="cm-rank" style="background:${rankColor}22;border-color:${rankColor}55;color:${rankColor}">${idx+1}</div>
+        <div class="cm-treatment-name">${item.treatment}</div>
+        <span class="cm-risk-pill" style="color:${riskColor};background:${riskColor}22;border:1px solid ${riskColor}44">${item.risk}</span>
+        <div class="cm-ensemble-score" style="color:${rankColor}">${item.score}%</div>
+      </div>
+      <div class="cm-model-breakdown">
+        <div class="cm-breakdown-label">Model Breakdown</div>
+        ${modelRows}
+        <div class="cm-ensemble-row">
+          <span class="cm-ensemble-label">Ensemble Average</span>
+          <span class="cm-ensemble-val" style="color:${rankColor}">${item.score}%</span>
         </div>
       </div>
-      <span class="compare-risk-pill" style="color:${riskColors[item.risk]};background:${riskColors[item.risk]}22;border:1px solid ${riskColors[item.risk]}44">${item.risk}</span>
-      <div class="compare-score" style="color:${barColors[idx]||'#4f8ef7'}">${item.score}%</div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
+
   setTimeout(() => {
-    list.querySelectorAll('.compare-bar-fill').forEach(el => { el.style.width = el.dataset.w; });
+    list.querySelectorAll('.cm-model-bar-fill').forEach(el => { el.style.width = el.dataset.w; });
   }, 80);
 }
 

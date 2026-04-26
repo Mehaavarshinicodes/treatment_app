@@ -84,12 +84,14 @@
     background: linear-gradient(135deg, rgba(79,142,247,0.3), rgba(79,90,247,0.2));
     border: 1.5px solid var(--accent-border);
     display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--accent);
     cursor: pointer;
     transition: opacity var(--transition);
     position: relative;
   }
   .avatar:hover { opacity: 0.8; }
-  .avatar svg { width: 18px; height: 18px; stroke: var(--accent); fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 
   .dropdown {
     position: absolute;
@@ -102,9 +104,8 @@
     min-width: 160px;
     display: none;
     backdrop-filter: blur(20px);
-    z-index: 200;
   }
-  .dropdown.open { display: block; }
+  .avatar:hover .dropdown { display: block; }
   .dropdown a {
     display: block;
     padding: 0.55rem 0.9rem;
@@ -316,9 +317,9 @@
   </a>
   <div class="nav-right">
     <span class="nav-greeting">MedCheck</span>
-    <div class="avatar" id="avatar-btn" onclick="toggleDropdown(event)">
-      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      <div class="dropdown" id="nav-dropdown">
+    <div class="avatar">
+      MV
+      <div class="dropdown">
         <a href="/profile">My Profile</a>
         <a href="/checker">Treatment Checker</a>
         <div class="dropdown-sep"></div>
@@ -327,16 +328,6 @@
     </div>
   </div>
 </nav>
-<script>
-function toggleDropdown(e) {
-  e.stopPropagation();
-  document.getElementById("nav-dropdown").classList.toggle("open");
-}
-document.addEventListener("click", function() {
-  var d = document.getElementById("nav-dropdown");
-  if (d) d.classList.remove("open");
-});
-</script>
 
 <main>
   <div class="hero">
