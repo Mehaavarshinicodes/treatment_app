@@ -3,7 +3,7 @@
 A Flask web app that predicts whether a treatment is feasible for a patient based on their health records using a machine learning model.
 
 # ML Model 
-- Algorithm: Gradient Boosting
+- Algorithms: Gradient Boosting, Logistic Regression, Neural Network(MLP), Random Forest
 - Features Used
      Patient Information
         - Age  
