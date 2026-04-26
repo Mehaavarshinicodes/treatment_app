@@ -94,11 +94,15 @@ http://127.0.0.1:5000
 - Python, Flask
 
 ## Screenshots
-<img width="1893" height="1017" alt="image" src="https://github.com/user-attachments/assets/4a086910-6fd3-491c-9667-980755c2aa3c" />
-<img width="467" height="777" alt="image" src="https://github.com/user-attachments/assets/7fc19424-02e9-4a13-bdfb-9272d66d78fd" />
-<img width="1897" height="1015" alt="image" src="https://github.com/user-attachments/assets/3dfe879f-59d2-41f5-9488-3902c1f57f84" />
-<img width="1883" height="1021" alt="image" src="https://github.com/user-attachments/assets/c2ab6927-bb49-4f86-aaad-d2e17f0b1c90" />
+Home Page:
+<img width="1902" height="1005" alt="image" src="https://github.com/user-attachments/assets/5f2439d5-7e9c-4100-9ae7-e63ef39a51df" />
 
+<img width="444" height="895" alt="image" src="https://github.com/user-attachments/assets/4c5964e6-6b64-4a33-acf5-c9d03193bb99" />
+<img width="577" height="785" alt="image" src="https://github.com/user-attachments/assets/3eadb30b-0324-4be5-89fb-d39af014efee" />
+<img width="481" height="883" alt="image" src="https://github.com/user-attachments/assets/d2fc1c72-3065-42cc-b3f4-222b3e064979" />
+
+Downloadable PDF report:
+<img width="1027" height="957" alt="image" src="https://github.com/user-attachments/assets/d6deb951-bc5e-4705-bc2e-ce415163ab97" />
 
 - scikit-learn (Gradient Boosting Classifier)
 - HTML, CSS, JavaScript
